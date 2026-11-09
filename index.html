@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="day">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小手机</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23f5f4f2'/%3E%3Cpath d='M22 26c0-6 4-10 10-10s10 4 10 10' fill='none' stroke='%23141414' stroke-width='4'/%3E%3Cpath d='M27 30c0-3 2-5 5-5s5 2 5 5' fill='none' stroke='%23141414' stroke-width='4'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- ======== 图标库（统一 24 网格、1.6 描边） ======== -->
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.2 7.4A3.2 3.2 0 0 1 7.4 4.2h9.2A3.2 3.2 0 0 1 19.8 7.4v6.4a3.2 3.2 0 0 1-3.2 3.2H10l-4 3v-3.2h-.6A1.2 1.2 0 0 1 4.2 15V7.4Z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.6"/><circle cx="12" cy="12" r="2.6"/><g><path d="M12 2.4v2.2M12 19.4v2.2M2.4 12h2.2M19.4 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></g></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M3.4 19.4c.6-3.4 2.8-5.2 5.6-5.2s5 1.8 5.6 5.2"/><path d="M16.2 5.2a3 3 0 0 1 0 5.6M18 19.4c-.2-2.6-1-4.2-2.4-5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.6C10.2 5 7.6 4.4 4.4 4.6v13.4c3.2-.2 5.8.4 7.6 2 1.8-1.6 4.4-2.2 7.6-2V4.6c-3.2-.2-5.8.4-7.6 2Z"/><path d="M12 6.6v11.4"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><rect x="5" y="3.6" width="14" height="16.8" rx="2.4"/><path d="M8.4 8.2h7.2M8.4 12h7.2M8.4 15.8h4.2"/><path d="M14.6 3.6v2.4M9.4 3.6v2.4"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4.6"/><circle cx="12" cy="12" r="4.6"/><circle cx="17.4" cy="6.6" r="1.1"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.6" y="5" width="16.8" height="15.4" rx="2.6"/><path d="M3.6 9.6h16.8"/><path d="M7.6 3.4v3.2M16.4 3.4v3.2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><rect x="4.4" y="7.4" width="15.2" height="12.6" rx="3"/><path d="M8.6 7.4v-1a3.4 3.4 0 0 1 6.8 0v1"/><path d="M4.6 11.4h14.8"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M14.6 5.6l4.2-1.2v10.2"/><path d="M14.6 5.6v10.2"/><circle cx="12.4" cy="16.6" r="2.6"/><circle cx="18.2" cy="15.2" r="2.2"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.6" y="4.6" width="16.8" height="14.8" rx="3"/><circle cx="8.4" cy="9.4" r="1.6"/><path d="M4 16.4l4.6-4 3.2 2.8 3-2.6 5 4"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 19.6s-7.6-4.4-7.6-9.4a4 4 0 0 1 7.6-2.2 4 4 0 0 1 7.6 2.2c0 5-7.6 9.4-7.6 9.4Z"/><path d="M5.4 11.4h3l1.4-2.6 2 4.6 1.6-2h3.8"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.4"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3v3.4M12 17.6V21M3 12h3.4M17.6 12H21"/></symbol>
+  <symbol id="i-read" viewBox="0 0 24 24"><rect x="3.6" y="5" width="16.8" height="14" rx="2.4"/><path d="M8.4 5v14M11.6 9.4h6.4M11.6 12.6h6.4M11.6 15.8h3.6"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7.4h16M4 16.6h16"/><circle cx="9.2" cy="7.4" r="2.4"/><circle cx="15.2" cy="16.6" r="2.4"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.6" y="2.6" width="10.8" height="18.8" rx="3"/><path d="M10 5.6h4"/><path d="M10.4 18.4h3.2"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M11 4.6a2.6 2.6 0 0 0-4.6 1.8 2.6 2.6 0 0 0-1.8 4.4 2.8 2.8 0 0 0 1 4.8 2.8 2.8 0 0 0 5.4 1.6Z"/><path d="M13 4.6a2.6 2.6 0 0 1 4.6 1.8 2.6 2.6 0 0 1 1.8 4.4 2.8 2.8 0 0 1-1 4.8 2.8 2.8 0 0 1-5.4 1.6Z"/><path d="M12 4.6v14.8"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="6" cy="7.4" r="2.4"/><circle cx="17.6" cy="5.6" r="2.4"/><circle cx="12.4" cy="17.4" r="2.4"/><path d="M8.2 8.4l2.8 6.8M15.4 7l-2 8.2"/></symbol>
+  <symbol id="i-plane" viewBox="0 0 24 24"><path d="M20.4 4.4l-8 15.6-2.6-6.2-6.2-2.6 15.6-8Z"/><path d="M9.8 13.8l3.4-3.4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><rect x="3.6" y="4.6" width="16.8" height="14.8" rx="3.4"/><path d="M10.2 8.8l5.2 3.2-5.2 3.2Z"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24"><circle cx="12" cy="6.6" r="2.2"/><circle cx="6.4" cy="17" r="2.2"/><circle cx="17.6" cy="17" r="2.2"/><path d="M10.6 8.4l-3.4 6.6M13.4 8.4l3.4 6.6M8.6 17h6.8"/></symbol>
+  <symbol id="i-cmd" viewBox="0 0 24 24"><path d="M8.4 5a3.4 3.4 0 1 0 3.6 3.4v7.2a3.4 3.4 0 1 0 3.6-3.4H7.8a3.4 3.4 0 1 0 3.4 3.4V8.4a3.4 3.4 0 1 0-3.4 3.4h7.2"/></symbol>
+  <symbol id="i-rabbit" viewBox="0 0 24 24"><path d="M9.4 10.2c-.4-3-1-4.6-2-5.6-1 1.2-.6 3.6 0 5.4"/><path d="M14.6 10.2c.4-3 1-4.6 2-5.6 1 1.2.6 3.6 0 5.4"/><path d="M12 10c2.8 0 4.6 1.8 4.6 4.4S14.8 19 12 19s-4.6-2-4.6-4.6S9.2 10 12 10Z"/><path d="M9.4 14h.01M14.6 14h.01"/><path d="M11 16.4h2"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.6 6.6l10.8 10.8M17.4 6.6L6.6 17.4"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 8h9M8 12h9M8 16h9"/><circle cx="4.6" cy="8" r=".9"/><circle cx="4.6" cy="12" r=".9"/><circle cx="4.6" cy="16" r=".9"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5.6M12 5.6l-6 6M12 5.6l6 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.6" cy="10.6" r="6"/><path d="M15.4 15.4l4 4"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6-6.2 6-10.8a6 6 0 1 0-12 0c0 4.6 6 10.8 6 10.8Z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+
+</defs></svg>
+
+<!-- ======== 状态栏 ======== -->
+<header class="statusbar" id="statusbar">
+  <span class="sb__left">
+    <span class="sb__time" id="sbTime">--:--</span>
+    <span class="sb__mute"><svg viewBox="0 0 24 24" class="sb__mini"><path d="M4 9.4h3.6l4.4-3.6v12.4l-4.4-3.6H4Z"/><path d="M16 8.4l4 7.2M20 8.4l-4 7.2"/></svg></span>
+  </span>
+  <span class="sb__right">
+    <span class="sb__signal">
+      <i></i><i></i><i></i><i></i>
+    </span>
+    <span class="sb__5g">5G</span>
+    <span class="sb__battery"><span class="sb__battery-fill" id="sbBattery">66</span></span>
+  </span>
+</header>
+
+<!-- ======== 多页桌面 ======== -->
+<main class="pager" id="pager">
+
+  <!-- ---------- 第 1 页：概览 ---------- -->
+  <section class="page" data-page="0">
+    <div class="page__inner">
+
+      <article class="card greet" id="greetCard">
+        <header class="card__bar">
+          <button class="mini" id="greetClose" aria-label="关闭卡片"><svg class="icon"><use href="#i-close" xlink:href="#i-close"></use></svg></button>
+          <button class="mini" data-app="chat" aria-label="打开消息"><svg class="icon"><use href="#i-list" xlink:href="#i-list"></use></svg></button>
+        </header>
+        <div class="greet__body">
+          <div class="dots-tile">
+            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
+          </div>
+          <div class="greet__text">
+            <p class="greet__line1">今天也辛苦了 ·ᵕ·</p>
+            <p class="greet__line2">you did so well today — even the small<br>things count, even the slow days.</p>
+          </div>
+        </div>
+      </article>
+
+      <div class="grid grid--4" data-grid="overview-a">
+        <button class="app" data-app="icidy"><span class="tile"><svg class="icon"><use href="#i-note" xlink:href="#i-note"></use></svg></span><span class="app__label">iCity</span></button>
+        <button class="app" data-app="insta"><span class="tile"><svg class="icon"><use href="#i-camera" xlink:href="#i-camera"></use></svg></span><span class="app__label">Insta</span></button>
+        <button class="app" data-app="schedule"><span class="tile"><svg class="icon"><use href="#i-cal" xlink:href="#i-cal"></use></svg></span><span class="app__label">日程</span></button>
+        <button class="app" data-app="x"><span class="tile"><svg class="icon"><use href="#i-x" xlink:href="#i-x"></use></svg></span><span class="app__label">X</span></button>
+      </div>
+
+      <button class="card nowplaying" data-app="music">
+        <span class="dots-tile dots-tile--sm">
+          <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
+        </span>
+        <span class="np__text">
+          <span class="label label--wide">NOW PLAYING</span>
+          <span class="np__title" id="npTitle">incloud</span>
+          <span class="np__sub" id="npSub">LiToT — soft hours, vol. 2</span>
+        </span>
+        <span class="np__wave" id="npWave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      </button>
+
+      <div class="grid grid--4" data-grid="overview-b">
+        <button class="app" data-app="store"><span class="tile"><svg class="icon"><use href="#i-bag" xlink:href="#i-bag"></use></svg></span><span class="app__label">商店</span></button>
+        <button class="app" data-app="music"><span class="tile"><svg class="icon"><use href="#i-music" xlink:href="#i-music"></use></svg></span><span class="app__label">音乐</span></button>
+        <button class="app" data-app="gallery"><span class="tile"><svg class="icon"><use href="#i-image" xlink:href="#i-image"></use></svg></span><span class="app__label">图库</span></button>
+        <button class="app" data-app="health"><span class="tile"><svg class="icon"><use href="#i-heart" xlink:href="#i-heart"></use></svg></span><span class="app__label">健康</span></button>
+      </div>
+
+      <div class="marks" role="group" aria-label="标点快捷">
+        <button class="mark" data-mark="，">，</button>
+        <button class="mark" data-mark="。">。</button>
+        <button class="mark" data-mark="？">？</button>
+        <button class="mark" data-mark="！">！</button>
+        <button class="mark" data-mark="、">、</button>
+        <button class="mark" data-mark="……">……</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ---------- 第 2 页：消息 ---------- -->
+  <section class="page" data-page="1">
+    <div class="page__inner">
+
+      <article class="card inbox">
+        <header class="inbox__head">
+          <span class="label label--lower">inbox</span>
+          <span class="inbox__new" id="inboxNew">3 new</span>
+        </header>
+        <div class="inbox__list" id="inboxList"><!-- 由 app.js 渲染 --></div>
+      </article>
+
+      <article class="card cal" id="calCard">
+        <header class="card__bar">
+          <button class="mini" id="calClose" aria-label="关闭日历"><svg class="icon"><use href="#i-close" xlink:href="#i-close"></use></svg></button>
+          <button class="mini" data-app="schedule" aria-label="打开日程"><svg class="icon"><use href="#i-list" xlink:href="#i-list"></use></svg></button>
+        </header>
+        <div class="cal__body">
+          <div class="cal__side">
+            <span class="cal__month" id="calMonth">NOV</span>
+            <span class="cal__rule"></span>
+            <span class="cal__weekday" id="calWeekday">星期一</span>
+            <span class="cal__rule"></span>
+            <span class="cal__hint" id="calHint">9 日</span>
+          </div>
+          <div class="cal__main">
+            <div class="cal__nav">
+              <button class="mini mini--sm" id="calPrev" aria-label="上个月"><svg class="icon"><use href="#i-chev-l" xlink:href="#i-chev-l"></use></svg></button>
+              <span class="cal__year" id="calYear">2026</span>
+              <button class="mini mini--sm" id="calNext" aria-label="下个月"><svg class="icon"><use href="#i-chev-r" xlink:href="#i-chev-r"></use></svg></button>
+            </div>
+            <div class="cal__week" id="calWeek"></div>
+            <div class="cal__grid" id="calGrid"></div>
+          </div>
+        </div>
+      </article>
+
+      <div class="grid grid--4">
+        <button class="app" data-app="valorant"><span class="tile"><svg class="icon"><use href="#i-target" xlink:href="#i-target"></use></svg></span><span class="app__label">无畏契约</span></button>
+        <button class="app" data-app="read"><span class="tile"><svg class="icon"><use href="#i-read" xlink:href="#i-read"></use></svg></span><span class="app__label">阅读</span></button>
+        <button class="app" data-app="community"><span class="tile"><svg class="icon"><use href="#i-users" xlink:href="#i-users"></use></svg></span><span class="app__label">社区</span></button>
+        <button class="app" data-app="control"><span class="tile"><svg class="icon"><use href="#i-sliders" xlink:href="#i-sliders"></use></svg></span><span class="app__label">控制中心</span></button>
+      </div>
+
+      <article class="card player" id="playerCard">
+        <header class="player__head">
+          <span class="player__art"><i class="vinyl"></i></span>
+          <span class="player__meta">
+            <span class="np__title np__title--sm" id="playerTitle">incloud</span>
+            <span class="np__sub" id="playerSub">Liii1zi</span>
+            <span class="player__tag"><svg class="icon icon--xs"><use href="#i-music" xlink:href="#i-music"></use></svg>Music</span>
+          </span>
+          <button class="mini" id="playerClose" aria-label="关闭播放器"><svg class="icon"><use href="#i-close" xlink:href="#i-close"></use></svg></button>
+        </header>
+        <div class="player__row">
+          <input class="player__input" id="playerInput" type="text" placeholder="비 오는 날엔 이 노래 들어줘  ᵕ̈" aria-label="点歌">
+          <button class="round-btn" id="playerSend" aria-label="发送点歌"><svg class="icon"><use href="#i-send" xlink:href="#i-send"></use></svg></button>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ---------- 第 3 页：角色主页 ---------- -->
+  <section class="page" data-page="2">
+    <div class="page__inner">
+
+      <article class="card profile">
+        <div class="profile__top">
+          <span class="avatar avatar--lg">
+            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
+          </span>
+          <div class="profile__id">
+            <span class="profile__name">祁寒知</span>
+            <span class="profile__handle">@qi_hz</span>
+          </div>
+          <button class="follow" id="followBtn" aria-pressed="false">关注</button>
+        </div>
+
+        <p class="profile__line">incloud … ㅎㅅㅎ</p>
+
+        <div class="profile__stats">
+          <span class="stat"><b>128</b><i>帖子</i></span>
+          <span class="stat"><b>2.4k</b><i>关注者</i></span>
+          <span class="stat"><b>96</b><i>关注</i></span>
+        </div>
+
+        <p class="profile__bio">always be kind to your own heart. 今天的我也要好好待你。</p>
+      </article>
+
+      <div class="polaroid-wrap">
+        <figure class="polaroid">
+          <span class="polaroid__img">
+            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
+          </span>
+          <figcaption class="polaroid__cap">incloud ⋯</figcaption>
+        </figure>
+
+        <div class="grid grid--2">
+          <button class="app" data-app="phonecheck"><span class="tile"><svg class="icon"><use href="#i-phone" xlink:href="#i-phone"></use></svg></span><span class="app__label">查手机</span></button>
+          <button class="app" data-app="memory"><span class="tile"><svg class="icon"><use href="#i-brain" xlink:href="#i-brain"></use></svg></span><span class="app__label">Memory</span></button>
+          <button class="app" data-app="relation"><span class="tile"><svg class="icon"><use href="#i-nodes" xlink:href="#i-nodes"></use></svg></span><span class="app__label">关系</span></button>
+          <button class="app" data-app="travel"><span class="tile"><svg class="icon"><use href="#i-plane" xlink:href="#i-plane"></use></svg></span><span class="app__label">旅行</span></button>
+        </div>
+      </div>
+
+      <div class="weekstrip" id="weekStrip"><!-- 由 app.js 渲染 --></div>
+
+      <div class="grid grid--4">
+        <button class="app" data-app="tube"><span class="tile"><svg class="icon"><use href="#i-play" xlink:href="#i-play"></use></svg></span><span class="app__label">Tube</span></button>
+        <button class="app" data-app="coop"><span class="tile"><svg class="icon"><use href="#i-net" xlink:href="#i-net"></use></svg></span><span class="app__label">联机</span></button>
+        <button class="app" data-app="codex"><span class="tile"><svg class="icon"><use href="#i-cmd" xlink:href="#i-cmd"></use></svg></span><span class="app__label">Codex</span></button>
+        <div class="app app--static">
+          <span class="tile tile--date"><b id="dateNum">22</b></span>
+          <span class="app__label" id="dateWeek">星期四</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ---------- 第 4 页：角色档案 ---------- -->
+  <section class="page" data-page="3">
+    <div class="page__inner page__inner--wide">
+
+      <article class="card covercard">
+        <div class="cover__band dots-bg">
+          <span class="cover__avatar">
+            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
+          </span>
+        </div>
+        <div class="cover__body">
+          <span class="cover__name">夏逾</span>
+          <span class="cover__handle">@xiaoyu_01</span>
+          <p class="cover__quote">缘分竟然默许你离去</p>
+          <p class="cover__loc"><svg class="icon icon--xs"><use href="#i-pin" xlink:href="#i-pin"></use></svg>somewhere soft</p>
+        </div>
+      </article>
+
+      <div class="duo">
+        <article class="card counter">
+          <span class="label label--lower" id="sinceLabel">since 2026.07.04</span>
+          <span class="counter__num" id="dayCount">D+128</span>
+          <span class="counter__cap">우리가 함께한 날</span>
+          <span class="counter__bar"><i id="counterBar" style="width:62%"></i></span>
+        </article>
+
+        <article class="card note">
+          <span class="label label--lower">a note to you</span>
+          <p class="note__text">I hope today is soft on you. 오늘도 천천히, 다정하게 — 你笑的那天，我想记很久…</p>
+          <p class="note__sign">— account_01</p>
+        </article>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ---------- 第 5 页：全部应用 ---------- -->
+  <section class="page" data-page="4">
+    <div class="page__inner">
+      <header class="lib__head">
+        <span class="label label--lower">all apps</span>
+        <p class="lib__title">全部应用</p>
+      </header>
+      <div class="grid grid--4" id="allApps"><!-- 由 app.js 渲染 --></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ======== 圆点 / Dock / 悬浮按钮 ======== -->
+<div class="dots" id="dots" role="tablist" aria-label="桌面页">
+  <button class="dot is-on" data-goto="0" aria-label="第 1 页"></button>
+  <button class="dot" data-goto="1" aria-label="第 2 页"></button>
+  <button class="dot" data-goto="2" aria-label="第 3 页"></button>
+  <button class="dot" data-goto="3" aria-label="第 4 页"></button>
+  <button class="dot" data-goto="4" aria-label="第 5 页"></button>
+</div>
+
+<nav class="dock" aria-label="Dock">
+  <button class="dock__item" data-app="chat" aria-label="聊天"><svg class="icon"><use href="#i-chat" xlink:href="#i-chat"></use></svg></button>
+  <button class="dock__item" data-app="settings" aria-label="设置"><svg class="icon"><use href="#i-gear" xlink:href="#i-gear"></use></svg></button>
+  <button class="dock__item" data-app="community" aria-label="社区"><svg class="icon"><use href="#i-users" xlink:href="#i-users"></use></svg></button>
+  <button class="dock__item" data-app="worldbook" aria-label="世界书"><svg class="icon"><use href="#i-book" xlink:href="#i-book"></use></svg></button>
+</nav>
+
+<button class="fab" id="fab" aria-label="快捷面板">
+  <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
+</button>
+
+<!-- ======== 应用页 ======== -->
+<div class="fullview" id="appView" hidden>
+  <header class="fv__bar">
+    <button class="back" id="appBack" aria-label="返回"><svg class="icon"><use href="#i-chev-l" xlink:href="#i-chev-l"></use></svg></button>
+    <span class="fv__title" id="appTitle">应用</span>
+    <span class="fv__spacer"></span>
+  </header>
+  <div class="fv__body">
+    <span class="tile tile--hero" id="appIcon"><svg class="icon"><use href="#i-note" xlink:href="#i-note"></use></svg></span>
+    <p class="label" id="appKicker">模块</p>
+    <h1 class="fv__heading" id="appHeading">标题</h1>
+    <p class="fv__desc" id="appDesc">说明</p>
+    <div class="fv__extra" id="appExtra"></div>
+    <div class="chips" id="appChips"></div>
+    <div class="skeleton">
+      <div class="sk"><span class="sk__thumb"></span><span class="sk__lines"><i style="width:56%"></i><i style="width:78%"></i></span></div>
+      <div class="sk"><span class="sk__thumb"></span><span class="sk__lines"><i style="width:66%"></i><i style="width:42%"></i></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 聊天页 ======== -->
+<div class="fullview" id="chatView" hidden>
+  <header class="fv__bar">
+    <button class="back" id="chatBack" aria-label="返回"><svg class="icon"><use href="#i-chev-l" xlink:href="#i-chev-l"></use></svg></button>
+    <span class="chat__who"><span class="avatar avatar--xs" id="chatAvatar"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></span><span id="chatName">会话</span></span>
+    <span class="fv__spacer"></span>
+  </header>
+  <div class="chat__log" id="chatLog"></div>
+  <div class="chat__composer">
+    <textarea class="chat__input" id="chatInput" rows="1" placeholder="说点什么…"></textarea>
+    <button class="round-btn round-btn--dark" id="chatSend" aria-label="发送"><svg class="icon"><use href="#i-send" xlink:href="#i-send"></use></svg></button>
+  </div>
+</div>
+
+<!-- ======== 快捷面板 ======== -->
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet__panel">
+    <span class="sheet__grip"></span>
+    <p class="sheet__title">快捷面板</p>
+    <div class="toggles">
+      <button class="toggle" data-toggle="dnd" aria-pressed="false"><span class="toggle__dot"></span>免打扰</button>
+      <button class="toggle" data-toggle="mute" aria-pressed="false"><span class="toggle__dot"></span>静音</button>
+      <button class="toggle" data-toggle="night" aria-pressed="false"><span class="toggle__dot"></span>夜间模式</button>
+    </div>
+    <div class="sheet__links">
+      <button class="sheet__link" data-app="chat">打开聊天</button>
+      <button class="sheet__link" data-app="gen">去生图</button>
+      <button class="sheet__link" data-app="settings">界面设置</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="./小手机合一.js"></script>
+</body>
+</html>
