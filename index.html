@@ -8,9 +8,8 @@
 </head>
 <body>
 
-<!-- ======== 图标库（统一 24 网格、1.6 描边） ======== -->
+<!-- ======== 图标库 ======== -->
 <svg class="sprite" aria-hidden="true" focusable="false"><defs>
-
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.2 7.4A3.2 3.2 0 0 1 7.4 4.2h9.2A3.2 3.2 0 0 1 19.8 7.4v6.4a3.2 3.2 0 0 1-3.2 3.2H10l-4 3v-3.2h-.6A1.2 1.2 0 0 1 4.2 15V7.4Z"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.6"/><circle cx="12" cy="12" r="2.6"/><g><path d="M12 2.4v2.2M12 19.4v2.2M2.4 12h2.2M19.4 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></g></symbol>
   <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M3.4 19.4c.6-3.4 2.8-5.2 5.6-5.2s5 1.8 5.6 5.2"/><path d="M16.2 5.2a3 3 0 0 1 0 5.6M18 19.4c-.2-2.6-1-4.2-2.4-5"/></symbol>
@@ -41,7 +40,6 @@
   <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5.6M12 5.6l-6 6M12 5.6l6 6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.6" cy="10.6" r="6"/><path d="M15.4 15.4l4 4"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6-6.2 6-10.8a6 6 0 1 0-12 0c0 4.6 6 10.8 6 10.8Z"/><circle cx="12" cy="10" r="2.2"/></symbol>
-
 </defs></svg>
 
 <!-- ======== 状态栏 ======== -->
@@ -51,9 +49,7 @@
     <span class="sb__mute"><svg viewBox="0 0 24 24" class="sb__mini"><path d="M4 9.4h3.6l4.4-3.6v12.4l-4.4-3.6H4Z"/><path d="M16 8.4l4 7.2M20 8.4l-4 7.2"/></svg></span>
   </span>
   <span class="sb__right">
-    <span class="sb__signal">
-      <i></i><i></i><i></i><i></i>
-    </span>
+    <span class="sb__signal"><i></i><i></i><i></i><i></i></span>
     <span class="sb__5g">5G</span>
     <span class="sb__battery"><span class="sb__battery-fill" id="sbBattery">66</span></span>
   </span>
@@ -61,20 +57,17 @@
 
 <!-- ======== 多页桌面 ======== -->
 <main class="pager" id="pager">
-
   <!-- ---------- 第 1 页：概览 ---------- -->
   <section class="page" data-page="0">
     <div class="page__inner">
-
       <article class="card greet" id="greetCard">
         <header class="card__bar">
           <button class="mini" id="greetClose" aria-label="关闭卡片"><svg class="icon"><use href="#i-close" xlink:href="#i-close"></use></svg></button>
-          <button class="mini" data-app="chat" aria-label="打开消息"><svg class="icon"><use href="#i-list" xlink:href="#i-list"></use></svg></button>
+          <!-- 【修改点1】第一页右上角的消息图标，加入了跳转 -->
+          <button class="mini" data-app="chat" onclick="window.location.href='聊天列表-液态玻璃.html'" aria-label="打开消息"><svg class="icon"><use href="#i-list" xlink:href="#i-list"></use></svg></button>
         </header>
         <div class="greet__body">
-          <div class="dots-tile">
-            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
-          </div>
+          <div class="dots-tile"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></div>
           <div class="greet__text">
             <p class="greet__line1">今天也辛苦了 ·ᵕ·</p>
             <p class="greet__line2">you did so well today — even the small<br>things count, even the slow days.</p>
@@ -90,9 +83,7 @@
       </div>
 
       <button class="card nowplaying" data-app="music">
-        <span class="dots-tile dots-tile--sm">
-          <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
-        </span>
+        <span class="dots-tile dots-tile--sm"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></span>
         <span class="np__text">
           <span class="label label--wide">NOW PLAYING</span>
           <span class="np__title" id="npTitle">incloud</span>
@@ -109,27 +100,17 @@
       </div>
 
       <div class="marks" role="group" aria-label="标点快捷">
-        <button class="mark" data-mark="，">，</button>
-        <button class="mark" data-mark="。">。</button>
-        <button class="mark" data-mark="？">？</button>
-        <button class="mark" data-mark="！">！</button>
-        <button class="mark" data-mark="、">、</button>
-        <button class="mark" data-mark="……">……</button>
+        <button class="mark" data-mark="，">，</button><button class="mark" data-mark="。">。</button><button class="mark" data-mark="？">？</button><button class="mark" data-mark="！">！</button><button class="mark" data-mark="、">、</button><button class="mark" data-mark="……">……</button>
       </div>
-
     </div>
   </section>
 
   <!-- ---------- 第 2 页：消息 ---------- -->
   <section class="page" data-page="1">
     <div class="page__inner">
-
       <article class="card inbox">
-        <header class="inbox__head">
-          <span class="label label--lower">inbox</span>
-          <span class="inbox__new" id="inboxNew">3 new</span>
-        </header>
-        <div class="inbox__list" id="inboxList"><!-- 由 app.js 渲染 --></div>
+        <header class="inbox__head"><span class="label label--lower">inbox</span><span class="inbox__new" id="inboxNew">3 new</span></header>
+        <div class="inbox__list" id="inboxList"></div>
       </article>
 
       <article class="card cal" id="calCard">
@@ -139,11 +120,7 @@
         </header>
         <div class="cal__body">
           <div class="cal__side">
-            <span class="cal__month" id="calMonth">NOV</span>
-            <span class="cal__rule"></span>
-            <span class="cal__weekday" id="calWeekday">星期一</span>
-            <span class="cal__rule"></span>
-            <span class="cal__hint" id="calHint">9 日</span>
+            <span class="cal__month" id="calMonth">NOV</span><span class="cal__rule"></span><span class="cal__weekday" id="calWeekday">星期一</span><span class="cal__rule"></span><span class="cal__hint" id="calHint">9 日</span>
           </div>
           <div class="cal__main">
             <div class="cal__nav">
@@ -179,45 +156,30 @@
           <button class="round-btn" id="playerSend" aria-label="发送点歌"><svg class="icon"><use href="#i-send" xlink:href="#i-send"></use></svg></button>
         </div>
       </article>
-
     </div>
   </section>
 
   <!-- ---------- 第 3 页：角色主页 ---------- -->
   <section class="page" data-page="2">
     <div class="page__inner">
-
       <article class="card profile">
         <div class="profile__top">
-          <span class="avatar avatar--lg">
-            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
-          </span>
-          <div class="profile__id">
-            <span class="profile__name">祁寒知</span>
-            <span class="profile__handle">@qi_hz</span>
-          </div>
+          <span class="avatar avatar--lg"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></span>
+          <div class="profile__id"><span class="profile__name">祁寒知</span><span class="profile__handle">@qi_hz</span></div>
           <button class="follow" id="followBtn" aria-pressed="false">关注</button>
         </div>
-
         <p class="profile__line">incloud … ㅎㅅㅎ</p>
-
         <div class="profile__stats">
-          <span class="stat"><b>128</b><i>帖子</i></span>
-          <span class="stat"><b>2.4k</b><i>关注者</i></span>
-          <span class="stat"><b>96</b><i>关注</i></span>
+          <span class="stat"><b>128</b><i>帖子</i></span><span class="stat"><b>2.4k</b><i>关注者</i></span><span class="stat"><b>96</b><i>关注</i></span>
         </div>
-
         <p class="profile__bio">always be kind to your own heart. 今天的我也要好好待你。</p>
       </article>
 
       <div class="polaroid-wrap">
         <figure class="polaroid">
-          <span class="polaroid__img">
-            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
-          </span>
+          <span class="polaroid__img"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></span>
           <figcaption class="polaroid__cap">incloud ⋯</figcaption>
         </figure>
-
         <div class="grid grid--2">
           <button class="app" data-app="phonecheck"><span class="tile"><svg class="icon"><use href="#i-phone" xlink:href="#i-phone"></use></svg></span><span class="app__label">查手机</span></button>
           <button class="app" data-app="memory"><span class="tile"><svg class="icon"><use href="#i-brain" xlink:href="#i-brain"></use></svg></span><span class="app__label">Memory</span></button>
@@ -226,34 +188,26 @@
         </div>
       </div>
 
-      <div class="weekstrip" id="weekStrip"><!-- 由 app.js 渲染 --></div>
+      <div class="weekstrip" id="weekStrip"></div>
 
       <div class="grid grid--4">
         <button class="app" data-app="tube"><span class="tile"><svg class="icon"><use href="#i-play" xlink:href="#i-play"></use></svg></span><span class="app__label">Tube</span></button>
         <button class="app" data-app="coop"><span class="tile"><svg class="icon"><use href="#i-net" xlink:href="#i-net"></use></svg></span><span class="app__label">联机</span></button>
         <button class="app" data-app="codex"><span class="tile"><svg class="icon"><use href="#i-cmd" xlink:href="#i-cmd"></use></svg></span><span class="app__label">Codex</span></button>
         <div class="app app--static">
-          <span class="tile tile--date"><b id="dateNum">22</b></span>
-          <span class="app__label" id="dateWeek">星期四</span>
+          <span class="tile tile--date"><b id="dateNum">22</b></span><span class="app__label" id="dateWeek">星期四</span>
         </div>
       </div>
-
     </div>
   </section>
 
   <!-- ---------- 第 4 页：角色档案 ---------- -->
   <section class="page" data-page="3">
     <div class="page__inner page__inner--wide">
-
       <article class="card covercard">
-        <div class="cover__band dots-bg">
-          <span class="cover__avatar">
-            <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
-          </span>
-        </div>
+        <div class="cover__band dots-bg"><span class="cover__avatar"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></span></div>
         <div class="cover__body">
-          <span class="cover__name">夏逾</span>
-          <span class="cover__handle">@xiaoyu_01</span>
+          <span class="cover__name">夏逾</span><span class="cover__handle">@xiaoyu_01</span>
           <p class="cover__quote">缘分竟然默许你离去</p>
           <p class="cover__loc"><svg class="icon icon--xs"><use href="#i-pin" xlink:href="#i-pin"></use></svg>somewhere soft</p>
         </div>
@@ -266,51 +220,40 @@
           <span class="counter__cap">우리가 함께한 날</span>
           <span class="counter__bar"><i id="counterBar" style="width:62%"></i></span>
         </article>
-
         <article class="card note">
           <span class="label label--lower">a note to you</span>
           <p class="note__text">I hope today is soft on you. 오늘도 천천히, 다정하게 — 你笑的那天，我想记很久…</p>
           <p class="note__sign">— account_01</p>
         </article>
       </div>
-
     </div>
   </section>
 
   <!-- ---------- 第 5 页：全部应用 ---------- -->
   <section class="page" data-page="4">
     <div class="page__inner">
-      <header class="lib__head">
-        <span class="label label--lower">all apps</span>
-        <p class="lib__title">全部应用</p>
-      </header>
-      <div class="grid grid--4" id="allApps"><!-- 由 app.js 渲染 --></div>
+      <header class="lib__head"><span class="label label--lower">all apps</span><p class="lib__title">全部应用</p></header>
+      <div class="grid grid--4" id="allApps"></div>
     </div>
   </section>
-
 </main>
 
 <!-- ======== 圆点 / Dock / 悬浮按钮 ======== -->
 <div class="dots" id="dots" role="tablist" aria-label="桌面页">
-  <button class="dot is-on" data-goto="0" aria-label="第 1 页"></button>
-  <button class="dot" data-goto="1" aria-label="第 2 页"></button>
-  <button class="dot" data-goto="2" aria-label="第 3 页"></button>
-  <button class="dot" data-goto="3" aria-label="第 4 页"></button>
-  <button class="dot" data-goto="4" aria-label="第 5 页"></button>
+  <button class="dot is-on" data-goto="0" aria-label="第 1 页"></button><button class="dot" data-goto="1" aria-label="第 2 页"></button><button class="dot" data-goto="2" aria-label="第 3 页"></button><button class="dot" data-goto="3" aria-label="第 4 页"></button><button class="dot" data-goto="4" aria-label="第 5 页"></button>
 </div>
 
 <nav class="dock" aria-label="Dock">
-  <button class="dock__item" data-app="chat" aria-label="聊天"><svg class="icon"><use href="#i-chat" xlink:href="#i-chat"></use></svg></button>
+  <!-- 【修改点2】底部 Dock 栏的聊天图标，加入了跳转 -->
+  <button class="dock__item" data-app="chat" onclick="window.location.href='聊天列表-液态玻璃.html'" aria-label="聊天"><svg class="icon"><use href="#i-chat" xlink:href="#i-chat"></use></svg></button>
   <button class="dock__item" data-app="settings" aria-label="设置"><svg class="icon"><use href="#i-gear" xlink:href="#i-gear"></use></svg></button>
   <button class="dock__item" data-app="community" aria-label="社区"><svg class="icon"><use href="#i-users" xlink:href="#i-users"></use></svg></button>
   <button class="dock__item" data-app="worldbook" aria-label="世界书"><svg class="icon"><use href="#i-book" xlink:href="#i-book"></use></svg></button>
 </nav>
 
-<button class="fab" id="fab" aria-label="快捷面板">
-  <svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg>
-</button>
+<button class="fab" id="fab" aria-label="快捷面板"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></button>
 
-<!-- ======== 应用页 ======== -->
+<!-- ======== 应用页 (保留) ======== -->
 <div class="fullview" id="appView" hidden>
   <header class="fv__bar">
     <button class="back" id="appBack" aria-label="返回"><svg class="icon"><use href="#i-chev-l" xlink:href="#i-chev-l"></use></svg></button>
@@ -331,19 +274,7 @@
   </div>
 </div>
 
-<!-- ======== 聊天页 ======== -->
-<div class="fullview" id="chatView" hidden>
-  <header class="fv__bar">
-    <button class="back" id="chatBack" aria-label="返回"><svg class="icon"><use href="#i-chev-l" xlink:href="#i-chev-l"></use></svg></button>
-    <span class="chat__who"><span class="avatar avatar--xs" id="chatAvatar"><svg class="rabbit" viewBox="0 0 24 24"><use href="#i-rabbit" xlink:href="#i-rabbit"></use></svg></span><span id="chatName">会话</span></span>
-    <span class="fv__spacer"></span>
-  </header>
-  <div class="chat__log" id="chatLog"></div>
-  <div class="chat__composer">
-    <textarea class="chat__input" id="chatInput" rows="1" placeholder="说点什么…"></textarea>
-    <button class="round-btn round-btn--dark" id="chatSend" aria-label="发送"><svg class="icon"><use href="#i-send" xlink:href="#i-send"></use></svg></button>
-  </div>
-</div>
+<!-- 【注意：原来的聊天页 #chatView 已被彻底删掉】 -->
 
 <!-- ======== 快捷面板 ======== -->
 <div class="sheet" id="sheet" hidden>
@@ -356,7 +287,8 @@
       <button class="toggle" data-toggle="night" aria-pressed="false"><span class="toggle__dot"></span>夜间模式</button>
     </div>
     <div class="sheet__links">
-      <button class="sheet__link" data-app="chat">打开聊天</button>
+      <!-- 【修改点3】快捷面板里的按钮，加入了跳转 -->
+      <button class="sheet__link" data-app="chat" onclick="window.location.href='聊天列表-液态玻璃.html'">打开聊天</button>
       <button class="sheet__link" data-app="gen">去生图</button>
       <button class="sheet__link" data-app="settings">界面设置</button>
     </div>
@@ -365,6 +297,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./小手机合一.js"></script>
+<!-- 【注意：原来的小手机合一.js 已被彻底删掉】 -->
 </body>
-</html>
+                                                                                                                                                                                                                                  </html>
