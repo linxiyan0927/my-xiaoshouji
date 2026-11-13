@@ -571,12 +571,17 @@ button{ font:inherit; color:inherit; background:none; border:0; padding:0; curso
     });
   });
 
-  /* ---------- 列表行反馈 ---------- */
-  document.querySelectorAll('.row').forEach(function(row){
-    row.addEventListener('click', function(){
-      toast('打开与「' + row.dataset.name + '」的对话');
-    });
+  /* ---------- 列表行跳转 ---------- */
+document.querySelectorAll('.row').forEach(function(row){
+  row.addEventListener('click', function(){
+    const name = row.dataset.name;
+    if (name === '祁寒知') {
+      window.location.href = '聊天-蓝调深夜.html';
+    } else {
+      toast('打开与「' + name + '」的对话');
+    }
   });
+});
 })();
 </script>
 </body>
