@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>聊天界面 · 动态时间</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231c1c1c'/%3E%3Crect x='12' y='18' width='34' height='14' rx='7' fill='%23ffffff'/%3E%3Crect x='12' y='36' width='24' height='14' rx='7' fill='%23252529' stroke='%23666'/%3E%3C/svg%3E">
+<style>
+/* =========================================================
+   聊天界面模板（黑顶栏 + 灰底 + 黑白双色气泡）
+   时间与电量是动态的：
+   · 状态栏时间 = 真实时间（24h，自动刷新）
+   · 电量 = 设备真实电量（支持时），颜色随电量/充电变化
+   · 气泡时间戳 = 以“现在”为终点倒推，永远贴着当前时段
+   改文案见 .bubble__text，改角色见 .peer__name / .peer__sub
+   ========================================================= */
+:root{
+  --bar:        #1c1c1c;
+  --body:       #f1f2f6;
+  --mine:       #252529;
+  --theirs:     #ffffff;
+  --txt-mine:   #fdfdfd;
+  --txt-theirs: #141418;
+  --stamp-mine: #9a999e;
+  --stamp-theirs:#9d9d9d;
+  --stroke:     #3c3c40;
+  --batt-normal:rgba(255,255,255,.32);
+  --batt-low:   #e04b4b;
+  --batt-charge:#32d74b;
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:#080808;
+  display:grid;
+  place-items:center;
+  font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+              "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{ font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; }
+
+/* ---------- 屏幕容器 ---------- */
+.screen{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  height:100%;
+  max-height:100dvh;
+  background:var(--body);
+  overflow:hidden;
+}
+@media (min-width:480px){
+  .screen{
+    width:393px;
+    height:852px;
+    max-height:96vh;
+    border-radius:44px;
+    box-shadow:0 40px 90px -34px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.07);
+  }
+}
+
+/* ---------- 顶栏 ---------- */
+.top{ flex:0 0 auto; background:var(--bar); color:#fff; }
+
+.status{
+  height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px 0 38px;
+  font-size:16.5px;
+  font-weight:600;
+  letter-spacing:.01em;
+  font-variant-numeric:tabular-nums;
+}
+.status__l{ display:flex; align-items:center; gap:7px; }
+.status__r{ display:flex; align-items:center; gap:7px; }
+.ico{ display:block; }
+.ico--signal{ width:19px; height:12px; }
+.ico--wifi{ width:19px; height:15px; }
+.ico--mute{ width:17px; height:17px; }
+
+/* 电量：外框 + 按百分比伸缩的填充 + 右侧小凸起 */
+.batt{ display:flex; align-items:center; gap:1.5px; }
+.batt__body{
+  position:relative;
+  width:28px; height:13.8px;
+  border-radius:4.2px;
+  background:#4b4b4e;
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.batt__fill{
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:0%;
+  background:var(--batt-normal);
+  transition:width .35s ease, background-color .35s ease;
+}
+.batt__fill.is-low{ background:var(--batt-low); }
+.batt__fill.is-charging{ background:var(--batt-charge); }
+.batt__num{
+  position:relative;
+  z-index:1;
+  font-size:9.6px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:.02em;
+  color:#f2f2f2;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 1px rgba(0,0,0,.45);
+}
+.batt__nub{
+  width:1.8px; height:5.6px;
+  border-radius:.9px;
+  background:#4b4b4e;
+}
+
+.nav{
+  position:relative;
+  height:38px;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  padding:0 16px 0 4px;
+}
+.back{
+  flex:0 0 auto;
+  width:38px; height:38px;
+  display:grid; place-items:center;
+  border-radius:10px;
+}
+.back:active{ background:rgba(255,255,255,.08); }
+.back svg{ width:22px; height:22px; }
+
+.peer{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-left:1px;
+}
+.peer__av{
+  flex:0 0 auto;
+  width:34px; height:34px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#161616;
+}
+.peer__av img{
+  display:block;
+  width:100%; height:100%;
+  object-fit:cover;
+  filter:brightness(.92) contrast(1.06) saturate(.9);
+}
+.peer__text{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  min-width:0;
+}
+.peer__name{
+  font-size:16.5px;
+  font-weight:600;
+  line-height:19px;
+  letter-spacing:.02em;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.peer__sub{
+  font-size:12.5px;
+  font-weight:400;
+  line-height:16px;
+  color:#8b8b90;
+  letter-spacing:.01em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.nav__count{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:.02em;
+  color:#fff;
+  font-variant-numeric:tabular-nums;
+  pointer-events:none;
+}
+
+.more{
+  flex:0 0 auto;
+  width:40px; height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:3px;
+  padding-right:2px;
+  border-radius:10px;
+}
+.more:active{ background:rgba(255,255,255,.08); }
+.more i{
+  display:block;
+  width:4px; height:4px;
+  border-radius:50%;
+  background:#fff;
+}
+
+/* ---------- 消息区 ---------- */
+.log{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:12px 11px 14px;
+  display:flex;
+  flex-direction:column;
+  scrollbar-width:none;
+}
+.log::-webkit-scrollbar{ display:none; }
+
+.group{
+  display:flex;
+  flex-direction:column;
+  margin-top:11px;
+}
+.group:first-child{ margin-top:0; }
+.group--me{ align-items:flex-end; }
+.group--them{ align-items:flex-start; }
+
+.bubble{
+  position:relative;
+  display:inline-block;
+  max-width:78%;
+  padding:6px 10px;
+  border-radius:15px;
+  font-size:14px;
+  font-weight:500;
+  line-height:19px;
+  letter-spacing:.012em;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  animation:rise .18s ease-out;
+}
+.group .bubble + .bubble{ margin-top:4px; }
+
+.bubble--me{ background:var(--mine); color:var(--txt-mine); }
+.bubble--them{ background:var(--theirs); color:var(--txt-theirs); }
+
+/* 文字与时间戳同一行排版，时间戳贴基线 */
+.bubble__text{ vertical-align:baseline; white-space:pre-wrap; }
+
+.bubble__meta{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  margin-left:6px;
+  font-size:11px;
+  font-weight:500;
+  line-height:1;
+  vertical-align:baseline;
+  transform:translateY(-1px);
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.bubble--me .bubble__meta{ color:var(--stamp-mine); }
+.bubble--them .bubble__meta{ color:var(--stamp-theirs); }
+.bubble__time{ display:inline-block; }
+.check{
+  display:block;
+  width:16px; height:9px;
+  opacity:.92;
+}
+
+/* 每组最后一条的尖角（外侧下端，左右镜像） */
+.bubble--end.bubble--me{ border-bottom-right-radius:4px; }
+.bubble--end.bubble--them{ border-bottom-left-radius:4px; }
+.bubble--end.bubble--me::after,
+.bubble--end.bubble--them::after{
+  content:"";
+  position:absolute;
+  bottom:0;
+  width:6px;
+  height:9px;
+}
+.bubble--end.bubble--me::after{
+  right:-5px;
+  background:var(--mine);
+  clip-path:polygon(0 0, 0 100%, 100% 100%);
+}
+.bubble--end.bubble--them::after{
+  left:-5px;
+  background:var(--theirs);
+  clip-path:polygon(100% 0, 100% 100%, 0 100%);
+}
+
+@keyframes rise{
+  from{ opacity:0; transform:translateY(5px) scale(.985); }
+  to{ opacity:1; transform:none; }
+}
+
+/* ---------- 底栏 ---------- */
+.bar{
+  flex:0 0 auto;
+  background:#000;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 15px;
+  height:71px;
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+
+.bar__icon{
+  flex:0 0 auto;
+  width:24px; height:24px;
+  border:1.5px solid #4a4a4e;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+}
+.bar__icon svg{ width:16px; height:16px; }
+
+.bar__field{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  height:33px;
+  padding:0 13px 0 15px;
+  border:1.5px solid var(--stroke);
+  border-radius:17px;
+}
+.bar__input{
+  flex:1 1 auto;
+  min-width:0;
+  height:19px;
+  max-height:76px;
+  margin:5.5px 0;
+  padding:0;
+  border:0;
+  outline:none;
+  background:none;
+  color:#fff;
+  font:inherit;
+  font-size:13px;
+  line-height:19px;
+  resize:none;
+  overflow-y:auto;
+  scrollbar-width:none;
+}
+.bar__input::-webkit-scrollbar{ display:none; }
+.bar__input::placeholder{ color:#55555a; }
+
+.bar__attach{
+  flex:0 0 auto;
+  width:20px; height:20px;
+  margin-bottom:5.5px;
+  display:grid;
+  place-items:center;
+}
+.bar__attach svg{ width:16px; height:16px; }
+
+.bar__camera{
+  flex:0 0 auto;
+  width:31px; height:31px;
+  border:1.5px solid #4a4a4e;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+}
+.bar__camera svg{ width:16px; height:16px; }
+
+/* ---------- 轻提示 ---------- */
+.toast{
+  position:absolute;
+  left:50%;
+  bottom:92px;
+  transform:translate(-50%, 8px);
+  max-width:76%;
+  padding:8px 14px;
+  border-radius:13px;
+  background:rgba(28,28,30,.94);
+  color:#fff;
+  font-size:12.5px;
+  line-height:1.4;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+}
+.toast.is-on{ opacity:1; transform:translate(-50%, 0); }
+
+@media (prefers-reduced-motion:reduce){
+  .bubble{ animation:none; }
+  .toast{ transition:none; }
+  .batt__fill{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <symbol id="s-read" viewBox="0 0 18 10">
+      <path d="M1 5.4l2.6 2.6L9 2" stroke="#fff" stroke-width="1.35" stroke-linecap="round" fill="none"/>
+      <path d="M6.4 5.4l2.6 2.6L14.4 2" stroke="#fff" stroke-width="1.35" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="s-close" viewBox="0 0 24 24">
+      <path d="M5.2 4.6L18.6 18.2" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <path d="M6.6 19.2L17.4 6.2" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="s-smile" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8.4" stroke="#55555a" stroke-width="1.5" fill="none"/>
+      <circle cx="9.2" cy="10" r="1.1" fill="#55555a"/>
+      <path d="M8.6 14.2c1 1.4 2.2 2.1 3.6 2.1s2.7-.7 3.6-2.1" stroke="#55555a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="s-clip" viewBox="0 0 24 24">
+      <path d="M15.6 8.6l-6 6a3 3 0 0 0 4.2 4.2l6-6a4.6 4.6 0 0 0-6.5-6.5l-6 6a6.2 6.2 0 0 0 8.8 8.8l5.2-5.2"
+            stroke="#7c7c80" stroke-width="1.6" fill="none" stroke-linecap="round" transform="translate(-1.4,-2.6) scale(.92)"/>
+    </symbol>
+    <symbol id="s-cam" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="5.2" stroke="#4f4f54" stroke-width="1.6" fill="none"/>
+      <circle cx="12" cy="12" r="1.7" fill="#4f4f54"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="screen">
+
+  <!-- ============ 顶栏 ============ -->
+  <header class="top">
+    <div class="status">
+      <span class="status__l">
+        <span id="clock">--:--</span>
+        <svg class="ico ico--mute" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4.6 9.2h3.2l4-3.4v12.4l-4-3.4H4.6Z" fill="none" stroke="#d9d9d9" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M15.4 8.2l4.6 6.6M20 8.2l-4.6 6.6" stroke="#d9d9d9" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="status__r">
+        <svg class="ico ico--signal" viewBox="0 0 20 12" aria-hidden="true">
+          <rect x="0" y="7.4" width="3.2" height="4.6" rx="1.1" fill="#e6e6e6"/>
+          <rect x="5.4" y="5.2" width="3.2" height="6.8" rx="1.1" fill="#e6e6e6"/>
+          <rect x="10.8" y="2.8" width="3.2" height="9.2" rx="1.1" fill="#e6e6e6"/>
+          <rect x="16.2" y="0.4" width="3.2" height="11.6" rx="1.1" fill="#e6e6e6"/>
+        </svg>
+        <svg class="ico ico--wifi" viewBox="0 0 22 17" aria-hidden="true">
+          <path d="M1.6 5.4a14 14 0 0 1 18.8 0" fill="none" stroke="#e6e6e6" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M5.2 9.4a8.6 8.6 0 0 1 11.6 0" fill="none" stroke="#e6e6e6" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M8.6 13.1a4 4 0 0 1 4.8 0" fill="none" stroke="#e6e6e6" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span class="batt" id="batt" title="设备电量">
+          <span class="batt__body">
+            <span class="batt__fill" id="battFill"></span>
+            <b class="batt__num" id="battNum">--</b>
+          </span>
+          <span class="batt__nub"></span>
+        </span>
+      </span>
+    </div>
+
+    <div class="nav">
+      <button class="back" id="backBtn" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="#s-close" xlink:href="#s-close"></use></svg>
+      </button>
+
+      <div class="peer">
+        <span class="peer__av"><img src="data:image/jpeg;base64,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" alt=""></span>
+        <span class="peer__text">
+          <span class="peer__name">祁寒知</span>
+          <span class="peer__sub">@qi_hz</span>
+        </span>
+      </div>
+
+      <span class="nav__count" id="count">17/17</span>
+
+      <button class="more" id="moreBtn" aria-label="更多">
+        <i></i><i></i><i></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ 消息区 ============ -->
+  <!-- data-at = 距离“现在”多少分钟前；时间戳由脚本按真实时钟重算 -->
+  <main class="log" id="log">
+
+    <section class="group group--me" data-side="me">
+      <div class="bubble bubble--me" data-at="6">
+        <span class="bubble__text">刚到家</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+      <div class="bubble bubble--me" data-at="6">
+        <span class="bubble__text">路上有点堵</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+      <div class="bubble bubble--me bubble--end" data-at="6">
+        <span class="bubble__text">你睡了吗</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+    </section>
+
+    <section class="group group--them" data-side="them">
+      <div class="bubble bubble--them" data-at="4">
+        <span class="bubble__text">没有。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them bubble--end" data-at="4">
+        <span class="bubble__text">在等你消息。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+    </section>
+
+    <section class="group group--me" data-side="me">
+      <div class="bubble bubble--me" data-at="3">
+        <span class="bubble__text">那正好</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+      <div class="bubble bubble--me bubble--end" data-at="3">
+        <span class="bubble__text">给你带了热的</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+    </section>
+
+    <section class="group group--them" data-side="them">
+      <div class="bubble bubble--them" data-at="2">
+        <span class="bubble__text">放门口就行。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them" data-at="2">
+        <span class="bubble__text">我下来拿。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them" data-at="2">
+        <span class="bubble__text">外面风大，别站在那儿等。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them" data-at="2">
+        <span class="bubble__text">楼道灯坏了两天，你走慢一点。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them bubble--end" data-at="2">
+        <span class="bubble__text">听到了没有。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+    </section>
+
+    <section class="group group--me" data-side="me">
+      <div class="bubble bubble--me" data-at="1">
+        <span class="bubble__text">听到了</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+      <div class="bubble bubble--me bubble--end" data-at="1">
+        <span class="bubble__text">已经到楼下了</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span><svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>
+      </div>
+    </section>
+
+    <section class="group group--them" data-side="them">
+      <div class="bubble bubble--them" data-at="0">
+        <span class="bubble__text">站着别动。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them" data-at="0">
+        <span class="bubble__text">我穿个外套就下来。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+      <div class="bubble bubble--them bubble--end" data-at="0">
+        <span class="bubble__text">别催。</span>
+        <span class="bubble__meta"><span class="bubble__time">--:--</span></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ 底栏 ============ -->
+  <footer class="bar">
+    <button class="bar__icon" id="stickerBtn" aria-label="表情">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#s-smile" xlink:href="#s-smile"></use></svg>
+    </button>
+
+    <div class="bar__field">
+      <textarea class="bar__input" id="input" rows="1" placeholder="发消息" aria-label="发消息"></textarea>
+      <button class="bar__attach" id="attachBtn" aria-label="附件">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#s-clip" xlink:href="#s-clip"></use></svg>
+      </button>
+    </div>
+
+    <button class="bar__camera" id="cameraBtn" aria-label="相机">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#s-cam" xlink:href="#s-cam"></use></svg>
+    </button>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function(){
+  const log     = document.getElementById('log');
+  const input   = document.getElementById('input');
+  const clock   = document.getElementById('clock');
+  const countEl = document.getElementById('count');
+  const toastEl = document.getElementById('toast');
+  const battFill= document.getElementById('battFill');
+  const battNum = document.getElementById('battNum');
+
+  const pad = n => (n < 10 ? '0' + n : '' + n);
+  const hhmm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+  /* ---------- 1. 状态栏时间：真实时间，每 15 秒对一次表 ---------- */
+  function tickClock(){ clock.textContent = hhmm(new Date()); }
+  tickClock();
+  setInterval(tickClock, 15000);
+
+  /* ---------- 2. 状态栏电量：设备真实电量（不支持时用演示值） ---------- */
+  function paintBattery(level, charging){
+    const pct = Math.round(level * 100);
+    battNum.textContent = pct;
+    battFill.style.width = Math.max(4, pct) + '%';
+    battFill.classList.toggle('is-low', !charging && pct <= 20);
+    battFill.classList.toggle('is-charging', charging);
+    document.getElementById('batt').title =
+      '电量 ' + pct + '%' + (charging ? ' · 充电中' : '');
+  }
+
+  if (navigator.getBattery){
+    navigator.getBattery().then(function(b){
+      const sync = () => paintBattery(b.level, b.charging);
+      sync();
+      b.addEventListener('levelchange', sync);
+      b.addEventListener('chargingchange', sync);
+    }).catch(function(){ paintBattery(0.19, false); });
+  } else {
+    /* iOS Safari / 桌面浏览器多数拿不到电量，退回演示值 */
+    paintBattery(0.19, false);
+  }
+
+  /* ---------- 3. 气泡时间戳：以“现在”为终点按 data-at 倒推 ---------- */
+  function paintStamps(){
+    const now = new Date();
+    log.querySelectorAll('.bubble[data-at]').forEach(function(b){
+      const off = parseInt(b.dataset.at, 10) || 0;
+      const t = b.querySelector('.bubble__time');
+      if (!t) return;
+      t.textContent = hhmm(new Date(now.getTime() - off * 60000));
+    });
+  }
+  paintStamps();
+
+  /* ---------- 4. 计数 / 提示 / 发送 ---------- */
+  let toastTimer = null;
+  function toast(text){
+    toastEl.textContent = text;
+    toastEl.classList.add('is-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('is-on'), 1800);
+  }
+
+  function syncCount(){
+    const n = log.querySelectorAll('.bubble').length;
+    countEl.textContent = n + '/' + n;
+  }
+  function scrollToEnd(){ log.scrollTop = log.scrollHeight; }
+
+  function send(){
+    const text = input.value.trim();
+    if(!text) return;
+
+    let group = log.lastElementChild;
+    if(!group || group.dataset.side !== 'me'){
+      group = document.createElement('section');
+      group.className = 'group group--me';
+      group.dataset.side = 'me';
+      log.appendChild(group);
+    }
+
+    const prev = group.lastElementChild;
+    if(prev) prev.classList.remove('bubble--end');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bubble--me bubble--end';
+    bubble.dataset.at = '0';
+    bubble.innerHTML =
+      '<span class="bubble__text"></span>' +
+      '<span class="bubble__meta"><span class="bubble__time"></span>' +
+      '<svg class="check"><use href="#s-read" xlink:href="#s-read"></use></svg></span>';
+    bubble.querySelector('.bubble__text').textContent = text;
+    bubble.querySelector('.bubble__time').textContent = hhmm(new Date());
+    group.appendChild(bubble);
+
+    input.value = '';
+    input.style.height = '19px';
+    syncCount();
+    scrollToEnd();
+  }
+
+  input.addEventListener('input', function(){
+    input.style.height = '19px';
+    input.style.height = Math.min(input.scrollHeight, 76) + 'px';
+  });
+
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){
+      e.preventDefault();
+      send();
+    }
+  });
+
+  document.getElementById('stickerBtn').addEventListener('click', () => toast('表情面板占位'));
+  document.getElementById('attachBtn').addEventListener('click', () => toast('附件入口占位'));
+  document.getElementById('cameraBtn').addEventListener('click', () => toast('相机入口占位'));
+  document.getElementById('moreBtn').addEventListener('click', () => toast('会话设置占位'));
+  document.getElementById('backBtn').addEventListener('click', () => toast('返回键占位'));
+
+  syncCount();
+  scrollToEnd();
+})();
+</script>
+</body>
+</html>

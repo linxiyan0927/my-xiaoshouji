@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>聊天列表 · 液态玻璃</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ededf0'/%3E%3Crect x='10' y='14' width='44' height='16' rx='8' fill='%23ffffff' opacity='.75'/%3E%3Ccircle cx='20' cy='24' r='5' fill='%23111111'/%3E%3Crect x='30' y='20' width='18' height='3' rx='1.5' fill='%23111111'/%3E%3Crect x='14' y='40' width='36' height='12' rx='6' fill='%23111111'/%3E%3C/svg%3E">
+<style>
+/* =========================================================
+   聊天列表 · 液态玻璃版
+   · 顶部：无方框，只有左上角「消息」；底层是一层淡磨砂，向下渐隐
+   · 底部：半透明玻璃胶囊（模糊 + 高光边 + 内外阴影）
+   · 状态栏时间、电量、列表时间全部动态
+   ========================================================= */
+:root{
+  --ink:#111111;
+  --ink-2:#8e8e93;
+  --ink-3:#a9a9ae;
+  --line:rgba(0,0,0,.07);
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:#f0f0f0;
+  display:grid;
+  place-items:center;
+  font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+              "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{ font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; }
+
+.screen{
+  position:relative;
+  width:100%;
+  height:100%;
+  max-height:100dvh;
+  overflow:hidden;
+  /* 纯白页面：玻璃靠背后的内容与模糊来体现通透 */
+  background:#ffffff;
+}
+@media (min-width:480px){
+  .screen{
+    width:393px;
+    height:852px;
+    max-height:96vh;
+    border-radius:44px;
+    box-shadow:0 40px 90px -34px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.06);
+  }
+}
+
+/* ---------- 顶部玻璃层（无边框，向下渐隐） ---------- */
+.glass-top{
+  position:absolute;
+  top:0; left:0; right:0;
+  z-index:20;
+  padding-bottom:18px;
+  pointer-events:none;
+  background:linear-gradient(180deg,
+              rgba(255,255,255,.70) 0%,
+              rgba(255,255,255,.46) 62%,
+              rgba(255,255,255,0) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  backdrop-filter:blur(22px) saturate(170%);
+  -webkit-mask-image:linear-gradient(180deg, #000 0%, #000 74%, rgba(0,0,0,0) 100%);
+  mask-image:linear-gradient(180deg, #000 0%, #000 74%, rgba(0,0,0,0) 100%);
+}
+
+/* 状态栏（透明，直接落在玻璃上） */
+.status{
+  height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px 0 38px;
+  font-size:16.5px;
+  font-weight:600;
+  letter-spacing:.01em;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.status__l{ display:flex; align-items:center; gap:7px; }
+.status__r{ display:flex; align-items:center; gap:7px; }
+.ico{ display:block; }
+.ico--signal{ width:19px; height:12px; }
+.ico--wifi{ width:19px; height:15px; }
+.ico--mute{ width:17px; height:17px; }
+
+/* 电量：半透明槽 + 白色进度 + 数字变色 */
+.batt{ display:flex; align-items:center; gap:1.5px; }
+.batt__body{
+  position:relative;
+  width:28px; height:13.8px;
+  border-radius:4.2px;
+  background:rgba(0,0,0,.16);
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.batt__fill{
+  position:absolute; left:0; top:0; bottom:0;
+  width:0%;
+  background:#ffffff;
+  transition:width .35s ease;
+}
+.batt__num{
+  position:relative; z-index:1;
+  font-size:9.6px; font-weight:700; line-height:1;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+  transition:color .25s ease;
+}
+.batt__num.is-low{ color:#b93a32; }
+.batt__num.is-charging{ color:#2f7d48; }
+.batt__nub{
+  width:1.8px; height:5.6px;
+  border-radius:.9px;
+  background:rgba(0,0,0,.16);
+}
+
+/* 标题：只有两个字，没有底框 */
+.title{
+  margin:0;
+  padding:6px 20px 0;
+  font-size:26px;
+  font-weight:600;
+  letter-spacing:.01em;
+  color:var(--ink);
+  pointer-events:auto;
+}
+
+/* ---------- 列表 ---------- */
+.view{
+  position:relative;
+  z-index:1;
+  height:100%;
+  overflow-y:auto;
+  padding:132px 0 124px;
+  scrollbar-width:none;
+  overscroll-behavior:contain;
+}
+.view::-webkit-scrollbar{ display:none; }
+
+.pane{ display:none; }
+.pane.is-on{ display:block; }
+
+.row{
+  position:relative;
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:15px 18px;
+  text-align:left;
+  transition:background-color .15s ease;
+}
+.row:active{ background:rgba(0,0,0,.035); }
+.row + .row::before{
+  content:"";
+  position:absolute;
+  top:0; left:84px; right:18px;
+  height:1px;
+  background:var(--line);
+}
+
+.row__av{
+  flex:0 0 auto;
+  width:52px; height:52px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#ededf0;
+  box-shadow:0 0 0 1px rgba(0,0,0,.05);
+}
+.row__av img{
+  display:block;
+  width:100%; height:100%;
+  object-fit:cover;
+  filter:brightness(.96) contrast(1.04) saturate(.88);
+}
+
+.row__body{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.row__top{ display:flex; align-items:baseline; gap:6px; min-width:0; }
+.row__name{
+  font-size:16.5px;
+  font-weight:700;
+  letter-spacing:.01em;
+  color:var(--ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.row__handle{
+  flex:0 0 auto;
+  font-size:11px;
+  font-weight:400;
+  color:var(--ink-3);
+}
+.row__prev{
+  font-size:13px;
+  line-height:17px;
+  color:var(--ink-2);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.row__meta{
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+  padding-top:2px;
+}
+.row__time{
+  font-size:11.5px;
+  color:var(--ink-3);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.row__badge{
+  min-width:19px; height:19px;
+  padding:0 5px;
+  border-radius:999px;
+  background:rgba(17,17,17,.85);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  line-height:19px;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- 空态 ---------- */
+.empty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  padding:120px 24px 0;
+  text-align:center;
+}
+.empty__mark{
+  width:56px; height:56px;
+  border-radius:50%;
+  background:rgba(252,252,253,.85);
+  border:1px solid rgba(0,0,0,.05);
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+  display:grid;
+  place-items:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+}
+.empty__mark svg{ width:24px; height:24px; }
+.empty__title{
+  margin:0;
+  font-size:14px;
+  font-weight:600;
+  color:var(--ink);
+}
+.empty__desc{
+  margin:0;
+  font-size:12.5px;
+  line-height:1.6;
+  color:var(--ink-2);
+}
+
+/* ---------- 底部液态玻璃胶囊 ---------- */
+.tabs{
+  position:absolute;
+  left:50%;
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 20px);
+  transform:translateX(-50%);
+  z-index:20;
+  display:flex;
+  align-items:center;
+  gap:2px;
+  padding:4px;
+  border-radius:999px;
+  background:linear-gradient(180deg,
+              rgba(255,255,255,.58) 0%,
+              rgba(255,255,255,.34) 100%);
+  border:1px solid rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);
+  box-shadow:
+    0 16px 36px -14px rgba(0,0,0,.26),
+    0 0 0 1px rgba(0,0,0,.05),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -1px 3px rgba(0,0,0,.05);
+}
+.tab{
+  height:38px;
+  padding:0 20px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  color:#8a8a8f;
+  transition:color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+.tab:active{ color:var(--ink); }
+.tab.is-on{
+  background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.74));
+  color:var(--ink);
+  font-weight:600;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,.10),
+    0 0 0 1px rgba(0,0,0,.04),
+    inset 0 1px 0 rgba(255,255,255,1);
+}
+
+/* ---------- 轻提示 ---------- */
+.toast{
+  position:absolute;
+  left:50%;
+  bottom:104px;
+  transform:translate(-50%, 8px);
+  z-index:30;
+  max-width:76%;
+  padding:8px 14px;
+  border-radius:13px;
+  background:rgba(17,17,17,.88);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  color:#fff;
+  font-size:12.5px;
+  line-height:1.4;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+}
+.toast.is-on{ opacity:1; transform:translate(-50%, 0); }
+
+@media (prefers-reduced-motion:reduce){
+  .toast{ transition:none; }
+  .batt__fill{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <symbol id="s-photo" viewBox="0 0 24 24">
+      <rect x="3.4" y="5" width="17.2" height="14" rx="3" fill="none" stroke="#b9b9be" stroke-width="1.6"/>
+      <circle cx="8.8" cy="10" r="1.6" fill="#b9b9be"/>
+      <path d="M3.8 16.4l4.6-3.8 3.2 2.6 3-2.4 5.2 3.8" fill="none" stroke="#b9b9be" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="s-user" viewBox="0 0 24 24">
+      <circle cx="12" cy="8.6" r="3.6" fill="none" stroke="#b9b9be" stroke-width="1.6"/>
+      <path d="M4.8 20c.6-3.8 3.4-5.8 7.2-5.8s6.6 2 7.2 5.8" fill="none" stroke="#b9b9be" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="screen">
+
+  <!-- ============ 顶部：只有「消息」二字 + 一层渐隐磨砂 ============ -->
+  <header class="glass-top">
+    <div class="status">
+      <span class="status__l">
+        <span id="clock">--:--</span>
+        <svg class="ico ico--mute" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4.6 9.2h3.2l4-3.4v12.4l-4-3.4H4.6Z" fill="none" stroke="#4c4c4f" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M15.4 8.2l4.6 6.6M20 8.2l-4.6 6.6" stroke="#4c4c4f" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="status__r">
+        <svg class="ico ico--signal" viewBox="0 0 20 12" aria-hidden="true">
+          <rect x="0" y="7.4" width="3.2" height="4.6" rx="1.1" fill="#2c2c2e"/>
+          <rect x="5.4" y="5.2" width="3.2" height="6.8" rx="1.1" fill="#2c2c2e"/>
+          <rect x="10.8" y="2.8" width="3.2" height="9.2" rx="1.1" fill="#2c2c2e"/>
+          <rect x="16.2" y="0.4" width="3.2" height="11.6" rx="1.1" fill="#2c2c2e"/>
+        </svg>
+        <svg class="ico ico--wifi" viewBox="0 0 22 17" aria-hidden="true">
+          <path d="M1.6 5.4a14 14 0 0 1 18.8 0" fill="none" stroke="#2c2c2e" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M5.2 9.4a8.6 8.6 0 0 1 11.6 0" fill="none" stroke="#2c2c2e" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M8.6 13.1a4 4 0 0 1 4.8 0" fill="none" stroke="#2c2c2e" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span class="batt" id="batt" title="设备电量">
+          <span class="batt__body">
+            <span class="batt__fill" id="battFill"></span>
+            <b class="batt__num" id="battNum">--</b>
+          </span>
+          <span class="batt__nub"></span>
+        </span>
+      </span>
+    </div>
+
+    <h1 class="title">消息</h1>
+  </header>
+
+  <!-- ============ 列表（滚到玻璃下面会被磨砂遮住） ============ -->
+  <main class="view" id="view">
+
+    <section class="pane is-on" data-pane="0">
+
+      <button class="row" data-name="祁寒知" data-at="2">
+        <span class="row__av"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAcFBQYFBAcGBgYIBwcICxILCwoKCxYPEA0SGhYbGhkWGRgcICgiHB4mHhgZIzAkJiorLS4tGyIyNTEsNSgsLSz/2wBDAQcICAsJCxULCxUsHRkdLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCz/wAARCABgAGADASIAAhEBAxEB/8QAHAAAAgMBAQEBAAAAAAAAAAAAAwQCBQcBBgAI/8QAKhAAAgIBAwMDBAIDAAAAAAAAAQIAAxEEBSEGEjEiQVETFGGRUnEkMqH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aw5a/VConvCKmSeI3ptI19i1IMsx4EBXs7cH3MJ25TPzH9btWp0bgX1FQfBxwYE19tX5gJsuMicK+jMP2cEnmcZeOYAAJF15jAr8H5kH4gLlZA/EOVJHxBlMQF2XiQ7YwVke2BZ1p2lvBMuNhHbvekB/mOJWc9xCiW3T6ld50zEZPeDA2DXbFo9z0tKNWpPZzxPA9Q9B36Lus0oJTz2zUKHytTAY4yY/qKEv0qq6hiVgfnCzStUxV1KsPYiL21nuwBNm6h6Op1GXRBk8zOt26d1O3uxKFl+YHnigxBFPMadCCBiCYQF2GBAsMxp1yIErzAXKGcC+qGbHiRA5gWqgfU49pd9O19286UN47pRV8OT7YnoOmmB3rT5OOYGzCta6qiBnjxHi4IBz4ER7z9sg+QDCglkz+IDJKW+njxK3cdnp1lRyoPE7VeV1GM+2JZCwEQMj6j6V+h3WVrgieLtoapyrDBE3Peaq7KWDAH8zKN/0a16olRA804OcQTpHbKiuYB1xgQFWXngSAXmHYQePVAZVvUZabXqxpddVb/EiU6Nkj+4xW+Hgbltm9Ua7SUgOMnEvKBlRj3GZhG2bvfoLVKOe0H/WaZ031ZXq1CswDeCDAv7kC6knHIharsZB9hINYllpYHOZwrgAj4gJ7nYDWZmXUTf5c0LdSVqYj2GZm2+Wd+pwfmBU2L3LmJuMGNs3EWsgKsIIDnmHf8QPvAijeoQ6N6hEVf1YzGFc/9gOpZ6o5odZZp7fqVOVIlUlnrMMj4c8+YGibN1d3WqlrYY/M9vpNwq1CKe4eJhAtIsBBII8T0mzdS20MtdrHHjMDSd0TvpyPiZhvylNVn84ntDviXUctkETxO/3BtTkcgnMCoZjAO37hGYFTF7DgGBBz5gc8idJz7SGeYCIuHd7iGW9TjDA8/qIgkHyf3GqWyp4GfyMwHqrASDDs4ABieMAYrVsD2BE590qr6qTjPs0B5W/OZMOREfuKQoJ71/rmSF9XgW/sQLfT7pbSOwsSsHqNWbzyc4lcLAeQ4bE++pxkQGGs4xmBZoM2e/icNmfBEDpOIPyZ8zSGcQP/2Q==" alt=""></span>
+        <span class="row__body">
+          <span class="row__top">
+            <span class="row__name">祁寒知</span>
+            <span class="row__handle">@qi_hz</span>
+          </span>
+          <span class="row__prev">我穿个外套就下来。</span>
+        </span>
+        <span class="row__meta">
+          <span class="row__time">--:--</span>
+          <span class="row__badge">2</span>
+        </span>
+      </button>
+
+      <button class="row" data-name="夏逾" data-at="34">
+        <span class="row__av"><img src="data:image/jpeg;base64,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" alt=""></span>
+        <span class="row__body">
+          <span class="row__top">
+            <span class="row__name">夏逾</span>
+            <span class="row__handle">@xiaoyu_01</span>
+          </span>
+          <span class="row__prev">你把我吓一跳，刚还在想你是不是睡了……</span>
+        </span>
+        <span class="row__meta">
+          <span class="row__time">--:--</span>
+          <span class="row__badge">1</span>
+        </span>
+      </button>
+
+      <button class="row" data-name="哥" data-at="168">
+        <span class="row__av"><img src="data:image/jpeg;base64,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" alt=""></span>
+        <span class="row__body">
+          <span class="row__top">
+            <span class="row__name">哥</span>
+            <span class="row__handle">@blue_moment</span>
+          </span>
+          <span class="row__prev">做个好梦。</span>
+        </span>
+        <span class="row__meta">
+          <span class="row__time">--:--</span>
+        </span>
+      </button>
+
+      <button class="row" data-name="新角色" data-at="300">
+        <span class="row__av"><img src="data:image/jpeg;base64,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" alt=""></span>
+        <span class="row__body">
+          <span class="row__top">
+            <span class="row__name">新角色</span>
+            <span class="row__handle">@unnamed</span>
+          </span>
+          <span class="row__prev">已发送角色卡邀请，等待回应</span>
+        </span>
+        <span class="row__meta">
+          <span class="row__time">--:--</span>
+        </span>
+      </button>
+
+    </section>
+
+    <section class="pane" data-pane="1">
+      <div class="empty">
+        <span class="empty__mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#s-photo" xlink:href="#s-photo"></use></svg>
+        </span>
+        <p class="empty__title">还没有动态</p>
+        <p class="empty__desc">发布照片或日常后，会按时间倒序排列在这里。</p>
+      </div>
+    </section>
+
+    <section class="pane" data-pane="2">
+      <div class="empty">
+        <span class="empty__mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#s-user" xlink:href="#s-user"></use></svg>
+        </span>
+        <p class="empty__title">个人资料</p>
+        <p class="empty__desc">昵称、签名与头像可以在这里填写，暂时留白。</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ 底部液态玻璃胶囊 ============ -->
+  <nav class="tabs" id="tabs" aria-label="主导航">
+    <button class="tab is-on" data-pane="0" aria-current="page">消息</button>
+    <button class="tab" data-pane="1">朋友圈</button>
+    <button class="tab" data-pane="2">个人资料</button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function(){
+  const clock   = document.getElementById('clock');
+  const battFill= document.getElementById('battFill');
+  const battNum = document.getElementById('battNum');
+  const toastEl = document.getElementById('toast');
+  const view    = document.getElementById('view');
+  const tabs    = Array.from(document.querySelectorAll('.tab'));
+  const panes   = Array.from(document.querySelectorAll('.pane'));
+
+  const pad  = n => (n < 10 ? '0' + n : '' + n);
+  const hhmm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+  /* ---------- 状态栏时间：真实时间 ---------- */
+  function tickClock(){ clock.textContent = hhmm(new Date()); }
+  tickClock();
+  setInterval(tickClock, 15000);
+
+  /* ---------- 状态栏电量：设备真实电量 ---------- */
+  function paintBattery(level, charging){
+    const pct = Math.round(level * 100);
+    battNum.textContent = pct;
+    battFill.style.width = Math.max(4, pct) + '%';
+    battNum.classList.toggle('is-low', !charging && pct <= 20);
+    battNum.classList.toggle('is-charging', charging);
+    document.getElementById('batt').title = '电量 ' + pct + '%' + (charging ? ' · 充电中' : '');
+  }
+  if (navigator.getBattery){
+    navigator.getBattery().then(function(b){
+      const sync = () => paintBattery(b.level, b.charging);
+      sync();
+      b.addEventListener('levelchange', sync);
+      b.addEventListener('chargingchange', sync);
+    }).catch(function(){ paintBattery(0.5, false); });
+  } else {
+    paintBattery(0.5, false);
+  }
+
+  /* ---------- 列表时间：按真实时钟从 data-at 倒推 ---------- */
+  const now0 = new Date();
+  document.querySelectorAll('.row[data-at]').forEach(function(row){
+    const off = parseInt(row.dataset.at, 10) || 0;
+    const d = new Date(now0.getTime() - off * 60000);
+    const el = row.querySelector('.row__time');
+    if (el) el.textContent = hhmm(d);
+  });
+
+  /* ---------- 轻提示 ---------- */
+  let toastTimer = null;
+  function toast(text){
+    toastEl.textContent = text;
+    toastEl.classList.add('is-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('is-on'), 1800);
+  }
+
+  /* ---------- 底部胶囊切换 ---------- */
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      const idx = Number(tab.dataset.pane);
+      tabs.forEach(function(t){
+        const on = t === tab;
+        t.classList.toggle('is-on', on);
+        if(on) t.setAttribute('aria-current','page');
+        else t.removeAttribute('aria-current');
+      });
+      panes.forEach(function(p){
+        p.classList.toggle('is-on', Number(p.dataset.pane) === idx);
+      });
+      view.scrollTop = 0;
+    });
+  });
+
+  /* ---------- 列表行反馈 ---------- */
+  document.querySelectorAll('.row').forEach(function(row){
+    row.addEventListener('click', function(){
+      toast('打开与「' + row.dataset.name + '」的对话');
+    });
+  });
+})();
+</script>
+</body>
+</html>
